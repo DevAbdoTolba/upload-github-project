@@ -1,6 +1,30 @@
+<script lang="ts">
+  import { auth } from "../firebase";
+  import { user } from "../stores/userStore";
+  import { goto } from "$app/navigation";
+  import { signInWithPopup, GithubAuthProvider } from "firebase/auth";
+
+  let error = "";
+  const signInWithGitHub = async () => {
+    const provider = new GithubAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      user.set(result.user); // Set the user in the store
+      goto("/user");
+    } catch (e) {
+      // @ts-ignore
+      error = e.message;
+      console.error("Login error: ", e);
+    }
+  };
+</script>
+
 <div>
   <h1>Login with github</h1>
-  <button class="btn">Login</button>
+  <button class="btn" on:click={signInWithGitHub}>Login</button>
+  {#if error}
+    <p class="error">{error}</p>
+  {/if}
 </div>
 
 <style>
@@ -36,5 +60,9 @@
     background-color: #d9d9d9;
     border-color: #d9d9d9;
     color: #333;
+  }
+
+  .error {
+    color: red;
   }
 </style>

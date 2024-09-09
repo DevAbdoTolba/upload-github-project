@@ -1,8 +1,22 @@
 <script>
   import plantsWP from "$lib/images/plantsWP.jpg";
-</script>
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+  import { user } from "../stores/userStore";
 
-<svelte:head></svelte:head>
+  import { onAuthStateChanged } from "firebase/auth";
+  import { auth } from "../firebase";
+
+  onMount(() => {
+    const unsubscribe = onAuthStateChanged(auth, (userData) => {
+      user.set(userData); // Update the store with the user data
+      if (!userData && window.location.pathname.startsWith("/user")) {
+        goto("/");
+      }
+    });
+    return unsubscribe;
+  });
+</script>
 
 <body style="background-image: url({plantsWP});">
   <main class="main">
@@ -11,13 +25,6 @@
 </body>
 
 <style>
-  * {
-    font-family: "Courier New", Courier, monospace;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
   body {
     margin: 0;
     padding: 0;
