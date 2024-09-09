@@ -12,6 +12,8 @@
       user.set(userData); // Update the store with the user data
       if (!userData && window.location.pathname.startsWith("/user")) {
         goto("/");
+      } else if (userData && window.location.pathname === "/") {
+        goto("/user");
       }
     });
     return unsubscribe;

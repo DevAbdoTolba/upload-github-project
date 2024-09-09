@@ -1,8 +1,8 @@
 <script>
+  import { onMount } from "svelte";
   import { user } from "../../stores/userStore";
 
-  let currentUser = null;
-
+  let currentUser;
   $: currentUser = $user;
 </script>
 
