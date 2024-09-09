@@ -1,27 +1,38 @@
-<script lang="ts">
-  import { auth } from "../firebase";
-  import { user } from "../stores/userStore";
+<script>
   import { goto } from "$app/navigation";
-  import { signInWithPopup, GithubAuthProvider } from "firebase/auth";
+  import { getAuth, signInWithPopup, GithubAuthProvider } from "firebase/auth";
+  import { firebaseApp } from "./firebase";
+  import { setContext } from "svelte";
+  import { onMount } from "svelte";
+  import { writable } from "svelte/store";
 
+  const auth = getAuth(firebaseApp);
   let error = "";
-  const signInWithGitHub = async () => {
-    const provider = new GithubAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      user.set(result.user); // Set the user in the store
-      goto("/user");
-    } catch (e) {
-      // @ts-ignore
-      error = e.message;
-      console.error("Login error: ", e);
-    }
-  };
+
+  function handleLogin() {
+    signInWithPopup(auth, new GithubAuthProvider())
+      .then((result) => {
+        if (result.user) {
+          const credential = GithubAuthProvider.credentialFromResult(result);
+          // @ts-ignore
+          const accessToken = credential.accessToken; // Store the GitHub access token
+          localStorage.setItem("accessToken", accessToken);
+          setContext("user", result.user);
+          goto("/user");
+        } else {
+          error = "No user found";
+        }
+      })
+      .catch((error) => {
+        console.log("Log in error: ", error);
+      });
+  }
 </script>
 
 <div>
-  <h1>Login with github</h1>
-  <button class="btn" on:click={signInWithGitHub}>Login</button>
+  <h1>Login with GitHub</h1>
+  <button class="btn" on:click={handleLogin}> Login </button>
+
   {#if error}
     <p class="error">{error}</p>
   {/if}
