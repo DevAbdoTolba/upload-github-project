@@ -2,10 +2,10 @@
   import plantsWP from "$lib/images/plantsWP.jpg";
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { user } from "../stores/userStore";
+  import { user } from "../stores";
 
   import { onAuthStateChanged } from "firebase/auth";
-  import { auth } from "../firebase";
+  import { auth } from "./firebase";
 
   onMount(() => {
     const unsubscribe = onAuthStateChanged(auth, (userData) => {
