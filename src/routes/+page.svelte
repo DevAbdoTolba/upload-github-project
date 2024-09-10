@@ -1,12 +1,11 @@
-<script>
+<script lang="ts">
   import { goto } from "$app/navigation";
   import { getAuth, signInWithPopup, GithubAuthProvider } from "firebase/auth";
-  import { firebaseApp } from "./firebase";
+  import { auth } from "./firebase";
   import { setContext } from "svelte";
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
 
-  const auth = getAuth(firebaseApp);
   let error = "";
 
   function handleLogin() {
@@ -16,7 +15,7 @@
           const credential = GithubAuthProvider.credentialFromResult(result);
           // @ts-ignore
           const accessToken = credential.accessToken; // Store the GitHub access token
-          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("accessToken", accessToken as string);
           setContext("user", result.user);
           goto("/user");
         } else {
