@@ -131,8 +131,8 @@
   {:else}
     {#if error}
       <p>{error}</p>
-    {/if}
-    {#if loading}
+  
+    {:else}
       <p class="loading">
         Loading... please be patient, I don't have enough money to get a fast
         server
