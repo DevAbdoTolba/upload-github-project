@@ -6,6 +6,7 @@
 
   async function handleSignOut() {
     try {
+      localStorage.removeItem("accessToken")
       await signOut(auth);
       user.set(null);
     } catch (error) {
