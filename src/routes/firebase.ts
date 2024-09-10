@@ -39,6 +39,6 @@ async function insert(githubRepo: string, email: string) {
   const options = {
     merge: true,
   };
-  await setDoc(taskRef, data, options);
+  return await setDoc(taskRef, data, options);
 }
 export { db, insert };

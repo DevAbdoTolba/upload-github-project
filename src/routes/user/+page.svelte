@@ -16,6 +16,8 @@
   let error = "";
   let numberOfRepos = 0;
   let loading = false;
+  let submissionMessage = ""; // For success or error messages
+  let submitting = false; // To track form submission status
 
   $: {
     numberOfRepos = repoList.length;
@@ -50,36 +52,46 @@
           const data = await response.json();
           allRepos = [...allRepos, ...data];
 
-          // If fewer than 100 repos are returned, stop fetching more
           if (data.length < 100) {
             shouldFetchMore = false;
           }
-          page++; // Move to the next page
+          page++;
         } else {
           error = `Error fetching repositories: ${response.status}`;
           shouldFetchMore = false;
         }
       }
 
-      repoList = allRepos; // Update the list with all fetched repos
+      repoList = allRepos;
     } catch (fetchError) {
       console.error("Error fetching repositories:", fetchError);
       error = "An error occurred while fetching repositories.";
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (selectedRepo === "") {
+      submissionMessage = "Please select a repository before submitting.";
       return;
     }
-    insert(selectedRepo, $user?.email as string);
+
+    submitting = true;
+    submissionMessage = ""; // Reset message
+
+    try {
+      const res = await insert(selectedRepo, $user?.email as string);
+      submissionMessage = "Repository successfully submitted!";
+    } catch (submitError) {
+      console.error("Error submitting repository:", submitError);
+      submissionMessage = "An error occurred while submitting the repository. Please try again.";
+    } finally {
+      submitting = false; // Re-enable the button
+    }
   }
 </script>
 
 {#if $user}
   <h1>Welcome, {$user.displayName}!</h1>
-{:else}
-  wot
 {/if}
 
 <div>
@@ -104,11 +116,27 @@
       <button
         class="submit"
         on:click={handleSubmit}
-        disabled={selectedRepo === "" || loading ? true : false}
+        disabled={selectedRepo === "" || submitting || loading}
       >
         Submit
       </button>
     </div>
+
+    <!-- Display success or error message -->
+    {#if submissionMessage}
+      <p>{submissionMessage}</p>
+    {/if}
+
+  {:else}
+    {#if error}
+      <p>{error}</p>
+    {/if}
+    {#if loading}
+      <p class="loading">
+        Loading... please be patient, I don't have enough money to get a fast
+        server
+      </p>
+    {/if}
   {/if}
 </div>
 
@@ -197,5 +225,12 @@
   .numOfRepos {
     font-size: 1ch;
     font-weight: 700;
+  }
+
+  .loading {
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
+      sans-serif;
+    text-align: center;
+    color: #005763;
   }
 </style>
