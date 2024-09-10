@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { user } from "../../stores"; // Import the user store
   import { db, insert } from "../firebase";
+  import SignOut from "./signout.svelte";
 
   interface Repo {
     full_name: string;
@@ -83,7 +84,8 @@
       submissionMessage = "Repository successfully submitted!";
     } catch (submitError) {
       console.error("Error submitting repository:", submitError);
-      submissionMessage = "An error occurred while submitting the repository. Please try again.";
+      submissionMessage =
+        "An error occurred while submitting the repository. Please try again.";
     } finally {
       submitting = false; // Re-enable the button
     }
@@ -126,7 +128,6 @@
     {#if submissionMessage}
       <p>{submissionMessage}</p>
     {/if}
-
   {:else}
     {#if error}
       <p>{error}</p>
@@ -139,7 +140,7 @@
     {/if}
   {/if}
 </div>
-
+<SignOut />
 <style>
   select {
     width: 100%;
