@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { user } from "../../stores"; // Import the user store
+  import { db, insert } from "../firebase";
 
   interface Repo {
     full_name: string;
@@ -18,7 +19,6 @@
 
   $: {
     numberOfRepos = repoList.length;
-    console.log(repoList);
   }
 
   onMount(() => {
@@ -72,6 +72,7 @@
     if (selectedRepo === "") {
       return;
     }
+    insert(selectedRepo, $user?.email as string);
   }
 </script>
 

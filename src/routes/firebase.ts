@@ -12,6 +12,33 @@ const firebaseConfig = {
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
+
+// AUTH
+
 const auth = getAuth(firebaseApp);
 
-export { firebaseApp, auth };
+export { auth };
+
+// Store
+
+import { getFirestore, setDoc, doc } from "firebase/firestore";
+const db = getFirestore(firebaseApp);
+
+async function insert(githubRepo: string, email: string) {
+  const taskRef = doc(db, "tasks", email);
+
+  const data: {
+    email: string;
+    githubRepo: string;
+    task: string;
+  } = {
+    email,
+    githubRepo: "https://github.com/" + githubRepo,
+    task: "task1",
+  };
+  const options = {
+    merge: true,
+  };
+  await setDoc(taskRef, data, options);
+}
+export { db, insert };
