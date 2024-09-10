@@ -1,13 +1,25 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { user } from "../../stores"; // Import the user store
 
+  interface Repo {
+    full_name: string;
+    name: string;
+  }
+
+  type Repos = Repo[];
+
   let selectedRepo = "";
-  let repoList = [];
-  let accessToken;
+  let repoList: Repos = [];
+  let accessToken: string | null = null;
   let error = "";
   let numberOfRepos = 0;
-  $: numberOfRepos = repoList.length;
+  let loading = false;
+
+  $: {
+    numberOfRepos = repoList.length;
+    console.log(repoList);
+  }
 
   onMount(() => {
     accessToken = localStorage.getItem("accessToken");
@@ -21,7 +33,7 @@
   async function fetchGitHubRepos() {
     let page = 1;
     let shouldFetchMore = true;
-    let allRepos = [];
+    let allRepos: Repos = [];
 
     try {
       while (shouldFetchMore) {
@@ -55,6 +67,12 @@
       error = "An error occurred while fetching repositories.";
     }
   }
+
+  function handleSubmit() {
+    if (selectedRepo === "") {
+      return;
+    }
+  }
 </script>
 
 {#if $user}
@@ -82,7 +100,13 @@
           {selectedRepo}
         </a>
       </p>
-      <button class="submit"> Submit </button>
+      <button
+        class="submit"
+        on:click={handleSubmit}
+        disabled={selectedRepo === "" || loading ? true : false}
+      >
+        Submit
+      </button>
     </div>
   {/if}
 </div>
@@ -148,6 +172,25 @@
       background-color 0.15s,
       border-color 0.15s,
       color 0.15s;
+  }
+
+  .submit:hover {
+    background-color: #e0e0e0;
+    border: 1px solid #0f0f0f;
+    color: #333;
+  }
+
+  .submit:active {
+    background-color: #d0d0d0;
+    border: 1px solid #0f0f0f;
+    color: #333;
+  }
+
+  .submit[disabled] {
+    background-color: #9f9f9f;
+    border: 1px solid #0f0f0f;
+    color: #333;
+    cursor: not-allowed;
   }
 
   .numOfRepos {
