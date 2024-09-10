@@ -1,13 +1,27 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { user } from "../../stores"; // Import the user store
+  import { db, insert } from "../firebase";
+
+  interface Repo {
+    full_name: string;
+    name: string;
+  }
+
+  type Repos = Repo[];
 
   let selectedRepo = "";
-  let repoList = [];
-  let accessToken;
+  let repoList: Repos = [];
+  let accessToken: string | null = null;
   let error = "";
   let numberOfRepos = 0;
-  $: numberOfRepos = repoList.length;
+  let loading = false;
+  let submissionMessage = ""; // For success or error messages
+  let submitting = false; // To track form submission status
+
+  $: {
+    numberOfRepos = repoList.length;
+  }
 
   onMount(() => {
     accessToken = localStorage.getItem("accessToken");
@@ -21,7 +35,7 @@
   async function fetchGitHubRepos() {
     let page = 1;
     let shouldFetchMore = true;
-    let allRepos = [];
+    let allRepos: Repos = [];
 
     try {
       while (shouldFetchMore) {
@@ -38,29 +52,46 @@
           const data = await response.json();
           allRepos = [...allRepos, ...data];
 
-          // If fewer than 100 repos are returned, stop fetching more
           if (data.length < 100) {
             shouldFetchMore = false;
           }
-          page++; // Move to the next page
+          page++;
         } else {
           error = `Error fetching repositories: ${response.status}`;
           shouldFetchMore = false;
         }
       }
 
-      repoList = allRepos; // Update the list with all fetched repos
+      repoList = allRepos;
     } catch (fetchError) {
       console.error("Error fetching repositories:", fetchError);
       error = "An error occurred while fetching repositories.";
+    }
+  }
+
+  async function handleSubmit() {
+    if (selectedRepo === "") {
+      submissionMessage = "Please select a repository before submitting.";
+      return;
+    }
+
+    submitting = true;
+    submissionMessage = ""; // Reset message
+
+    try {
+      const res = await insert(selectedRepo, $user?.email as string);
+      submissionMessage = "Repository successfully submitted!";
+    } catch (submitError) {
+      console.error("Error submitting repository:", submitError);
+      submissionMessage = "An error occurred while submitting the repository. Please try again.";
+    } finally {
+      submitting = false; // Re-enable the button
     }
   }
 </script>
 
 {#if $user}
   <h1>Welcome, {$user.displayName}!</h1>
-{:else}
-  wot
 {/if}
 
 <div>
@@ -82,8 +113,30 @@
           {selectedRepo}
         </a>
       </p>
-      <button class="submit"> Submit </button>
+      <button
+        class="submit"
+        on:click={handleSubmit}
+        disabled={selectedRepo === "" || submitting || loading}
+      >
+        Submit
+      </button>
     </div>
+
+    <!-- Display success or error message -->
+    {#if submissionMessage}
+      <p>{submissionMessage}</p>
+    {/if}
+
+  {:else}
+    {#if error}
+      <p>{error}</p>
+    {/if}
+    {#if loading}
+      <p class="loading">
+        Loading... please be patient, I don't have enough money to get a fast
+        server
+      </p>
+    {/if}
   {/if}
 </div>
 
@@ -150,8 +203,34 @@
       color 0.15s;
   }
 
+  .submit:hover {
+    background-color: #e0e0e0;
+    border: 1px solid #0f0f0f;
+    color: #333;
+  }
+
+  .submit:active {
+    background-color: #d0d0d0;
+    border: 1px solid #0f0f0f;
+    color: #333;
+  }
+
+  .submit[disabled] {
+    background-color: #9f9f9f;
+    border: 1px solid #0f0f0f;
+    color: #333;
+    cursor: not-allowed;
+  }
+
   .numOfRepos {
     font-size: 1ch;
     font-weight: 700;
+  }
+
+  .loading {
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
+      sans-serif;
+    text-align: center;
+    color: #005763;
   }
 </style>
