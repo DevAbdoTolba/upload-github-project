@@ -3,6 +3,7 @@
   import { user } from "../../stores"; // Import the user store
   import { db, insert } from "../firebase";
   import SignOut from "./signout.svelte";
+  import { goto } from "$app/navigation";
 
   interface Repo {
     full_name: string;
@@ -90,10 +91,22 @@
       submitting = false; // Re-enable the button
     }
   }
+
+  function navigateToDashboard() {
+    goto("/dashboard");
+  }
 </script>
 
 {#if $user}
   <h1>Welcome, {$user.displayName}!</h1>
+
+  {#if $user.email === "devabdotolba@gmail.com"}
+    <div class="admin-controls">
+      <button class="dashboard-btn" on:click={navigateToDashboard}>
+        Admin Dashboard
+      </button>
+    </div>
+  {/if}
 {/if}
 
 <div>
@@ -233,5 +246,25 @@
       sans-serif;
     text-align: center;
     color: #005763;
+  }
+
+  .admin-controls {
+    margin: 15px 0;
+    text-align: center;
+  }
+
+  .dashboard-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+
+  .dashboard-btn:hover {
+    background-color: #45a049;
   }
 </style>
